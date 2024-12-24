@@ -1,5 +1,3 @@
-import json
-
 from typing import List, Dict, Any
 
 from pydub import AudioSegment
@@ -15,7 +13,8 @@ def format_time(seconds: float) -> str:
     return f"{m:02d}:{s:02d}"
 
 def create_metadata(sentences: List[str],
-                    audio_segments: List[AudioSegment]) -> Dict[str, Any]:
+                    audio_segments: List[AudioSegment]
+                    ) -> Dict[str, Any]:
     metadata = {}
     current_time = 0.0
 
@@ -31,8 +30,3 @@ def create_metadata(sentences: List[str],
         current_time += duration_sec
 
     return metadata
-
-def save_metadata(file_name, metadata):
-    with open(file_name, 'w', encoding='utf-8') as f:
-        json.dump(metadata, f, ensure_ascii=False, indent=2)
-    print(f"[INFO] 메타데이터 파일 저장 완료: {file_name}")
