@@ -14,7 +14,8 @@ from gen_tts import gen_tts
 OUTPUT_DIR = "output_files"
 
 # novel_id, episode_id 추가
-def process_text_file(text_content: str, audio_path: str, metadata_path: str) -> List[Dict[str, Any]]:
+def process_text_file(text_content: str, audio_path: str, metadata_path: str,
+                      audio_uuid: str, metadata_uuid: str) -> List[Dict[str, Any]]:
     """
     전체 txt 내용을 받아서
     Text_content : txt 읽어온 문자열 입력받아 문단별 mp3, 메타데이터 생성
@@ -54,8 +55,8 @@ def process_text_file(text_content: str, audio_path: str, metadata_path: str) ->
             combined_audio_segment += seg
 
         # 파일명 설정
-        audio_file_name = f"paragraph_{paragraph_idx + 1}.mp3"
-        metadata_file_name = f"paragraph_{paragraph_idx + 1}.json"
+        audio_file_name = audio_uuid
+        metadata_file_name = metadata_uuid
 
         # 최종 합쳐진 오디오 파일로 내보내기
         save_audio(combined_audio_segment, audio_file_name, s3_audio_path,audio_format="mp3")

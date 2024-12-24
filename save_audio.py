@@ -30,12 +30,14 @@ def save_audio(audio_segment: AudioSegment, file_name: str, s3_audio_path: str, 
     bucket_name, path_prefix = parts[0], parts[1]
 
     # S3에 저장할 오브젝트 Key
-    s3_key = f"{path_prefix}/{file_name}.{audio_format}"
+    s3_key = f"{path_prefix}/{file_name}"
 
     # 대충 오디오관련
     audio_buffer = io.BytesIO()
     audio_segment.export(audio_buffer, format=audio_format)
     audio_buffer.seek(0)  # export 후 버퍼 포인터를 처음으로 이동
+
+    print(f"[INFO] 음성 파일 생성 완료: {file_name}")
 
     # boto3를 이용해 S3에 업로드
     s3_client = boto3.client("s3",
