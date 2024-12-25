@@ -8,17 +8,6 @@ load_dotenv()
 
 
 def save_audio(audio_segment: AudioSegment, file_name: str, s3_audio_path: str, audio_format: str = "mp3") -> None:
-    """
-    Local 저장버전
-
-    audio_data = io.BytesIO()
-    audio_segment.export(audio_data, format=audio_format)
-
-    with open(file_name, 'wb') as f:
-        f.write(audio_data.getvalue())
-
-    print(f"[INFO] 음성 파일 저장 완료: {file_name}")
-    """
     # s3_audio_path 파싱 -> 버킷 이름, 업로드 키(prefix) 추출
     parts = s3_audio_path.split("/", 1)
     if len(parts) < 2:
@@ -48,3 +37,9 @@ def save_audio(audio_segment: AudioSegment, file_name: str, s3_audio_path: str, 
 
     print(f"[INFO] 음성 파일 저장 완료: {file_name}")
 
+def save_audio_local(audio_segment: AudioSegment, output_path: str, audio_format="mp3"):
+    """로컬에 오디오 파일 저장"""
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    audio_segment.export(output_path, format=audio_format)
+
+    print(f"[LOCAL SAVE] .mp3 saved at: {output_path}")

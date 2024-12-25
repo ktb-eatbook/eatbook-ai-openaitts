@@ -1,14 +1,14 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, AnyHttpUrl
+from typing import Optional
+
+from fastapi import FastAPI
+from pydantic import BaseModel
 import uuid
-import requests
 from script import process_text_file
 from dotenv import load_dotenv
 import os
 import boto3
 load_dotenv()
 
-# uuid를 파일명으로
 app = FastAPI()
 
 # 요청 데이터 모델 정의
@@ -16,8 +16,10 @@ class TTSRequest(BaseModel):
     novelId: str
     episodeId: str
     scriptId: str
+    voiceId: Optional[str] = "alloy"
+    speed: Optional[int] = 1
 
-def get_s3_audio_path(novel_id: str, episode_id: str, audio_uuid: str) -> str:
+def get_s3_audio_path(novel_id: str, episode_id: str) -> str:
     """
     ktb-eatbook-private 버킷 내부에
     {novelId}/episodes/{episodeId}/audio/{audio_uuid} 경로를 반환하는 함수
@@ -25,7 +27,7 @@ def get_s3_audio_path(novel_id: str, episode_id: str, audio_uuid: str) -> str:
     bucket_name = os.getenv("BUCKET_NAME")
     return f"{bucket_name}/{novel_id}/episodes/{episode_id}/audio"
 
-def get_s3_metadata_path(novel_id: str, episode_id: str, metadata_uuid: str) -> str:
+def get_s3_metadata_path(novel_id: str, episode_id: str) -> str:
     """
     ktb-eatbook-private 버킷 내부에
     {novelId}/episodes/{episodeId}/audio/{audio_uuid} 경로를 반환하는 함수
@@ -65,14 +67,21 @@ async def create_tts(request: TTSRequest):
         metadata_uuid = str(uuid.uuid4())
 
         # s3 버킷 경로 생성
-        audio_path = get_s3_audio_path(request.novelId, request.episodeId, audio_uuid)
-        metadata_path = get_s3_metadata_path(request.novelId, request.episodeId, metadata_uuid)
+        audio_path = get_s3_audio_path(request.novelId, request.episodeId)
+        metadata_path = get_s3_metadata_path(request.novelId, request.episodeId)
 
         # 1개 episode text 데이터
         episode = read_text_file(request.novelId, request.episodeId, request.scriptId)
-        print("restart")
-        process_text_file(episode, audio_path, metadata_path,audio_uuid, metadata_uuid)
-
+        # 생성 시작
+        process_text_file(text_content=episode,
+                          mode="s3",
+                          audio_path=audio_path,
+                          metadata_path=metadata_path,
+                          audio_uuid=audio_uuid,
+                          metadata_uuid=metadata_uuid,
+                          voiceId=request.voiceId,
+                          speed=request.speed
+        )
         return {
             "success": True,
             "audio_uuid": audio_uuid,
@@ -86,6 +95,7 @@ async def create_tts(request: TTSRequest):
             "error": "음성 생성 실패"
         }
 
+# uvicorn server:app --host 127.0.0.1 --port 8000 --reload
 if __name__ == "__main__":
      import uvicorn
-     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

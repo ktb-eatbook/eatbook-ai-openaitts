@@ -3,16 +3,11 @@ import boto3
 import io
 import os
 from dotenv import load_dotenv
+from typing import List, Dict, Any, Optional
 
 load_dotenv()
 
 def save_metadata(file_name: str, metadata: dict, s3_metadata_path: str) -> None:
-    """
-    Local 저장버전
-    with open(file_name, 'w', encoding='utf-8') as f:
-        json.dump(metadata, f, ensure_ascii=False, indent=2)
-    print(f"[INFO] 메타데이터 파일 저장 완료: {file_name}")
-    """
     # s3_metadata_path 파싱 -> 버킷 이름, 업로드 키(prefix) 추출
     parts = s3_metadata_path.split("/", 1)
     if len(parts) < 2:
@@ -39,3 +34,11 @@ def save_metadata(file_name: str, metadata: dict, s3_metadata_path: str) -> None
     s3_client.upload_fileobj(buffer, bucket_name, s3_key)
 
     print(f"[INFO] 메타데이터 파일 저장 완료: {file_name}")
+
+def save_metadata_local(output_path: str, metadata: Dict[str, Any]):
+    """로컬에 메타데이터 파일(.json) 저장"""
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    import json
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(metadata, f, ensure_ascii=False, indent=4)
+    print(f"[LOCAL SAVE] Metadata saved at: {output_path}")
